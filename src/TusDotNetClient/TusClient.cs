@@ -4,7 +4,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 
-namespace TusClient
+namespace TusDotNetClient
 {
     public class TusClient
     {
