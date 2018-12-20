@@ -16,15 +16,11 @@ namespace TusDotNetClient
 
     public class TusHttpRequest
     {
-        private Dictionary<string, string> _headers = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _headers = new Dictionary<string, string>();
         
-        public delegate void UploadingEvent(long bytesTransferred, long bytesTotal);
+        public event ProgressDelegate UploadProgressed;
 
-        public event UploadingEvent Uploading;
-
-        public delegate void DownloadingEvent(long bytesTransferred, long bytesTotal);
-
-        public event DownloadingEvent Downloading;
+        public event ProgressDelegate DownloadProgressed;
 
         public Uri Url { get; }
         public string Method { get; }
@@ -49,10 +45,10 @@ namespace TusDotNetClient
 
         public void AddHeader(string key, string value) => _headers.Add(key, value);
 
-        public void OnUploading(long bytesTransferred, long bytesTotal) =>
-            Uploading?.Invoke(bytesTransferred, bytesTotal);
+        public void OnUploadProgressed(long bytesTransferred, long bytesTotal) =>
+            UploadProgressed?.Invoke(bytesTransferred, bytesTotal);
 
-        public void FireDownloading(long bytesTransferred, long bytesTotal) =>
-            Downloading?.Invoke(bytesTransferred, bytesTotal);
+        public void OnDownloadProgressed(long bytesTransferred, long bytesTotal) =>
+            DownloadProgressed?.Invoke(bytesTransferred, bytesTotal);
     }
 }

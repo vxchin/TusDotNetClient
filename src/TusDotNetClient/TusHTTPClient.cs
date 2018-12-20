@@ -10,25 +10,25 @@ namespace TusDotNetClient
         public IWebProxy Proxy { get; set; }
 
 
-        public TusHttpResponse PerformRequest(TusHttpRequest req)
+        public TusHttpResponse PerformRequest(TusHttpRequest request)
         {
             try
             {
-                var inputStream = new MemoryStream(req.BodyBytes);
+                var inputStream = new MemoryStream(request.BodyBytes);
 
-                var request = (HttpWebRequest) WebRequest.Create(req.Url);
-                request.AutomaticDecompression = DecompressionMethods.GZip;
+                var webRequest = (HttpWebRequest) WebRequest.Create(request.Url);
+                webRequest.AutomaticDecompression = DecompressionMethods.GZip;
 
-                request.Timeout = Timeout.Infinite;
-                request.ReadWriteTimeout = Timeout.Infinite;
-                request.Method = req.Method;
-                request.KeepAlive = false;
+                webRequest.Timeout = Timeout.Infinite;
+                webRequest.ReadWriteTimeout = Timeout.Infinite;
+                webRequest.Method = request.Method;
+                webRequest.KeepAlive = false;
 
-                request.Proxy = Proxy;
+                webRequest.Proxy = Proxy;
 
                 try
                 {
-                    var currentServicePoint = request.ServicePoint;
+                    var currentServicePoint = webRequest.ServicePoint;
                     currentServicePoint.Expect100Continue = false;
                 }
                 catch (PlatformNotSupportedException)
@@ -38,33 +38,32 @@ namespace TusDotNetClient
                     //should work in .net core 2.2
                 }
 
-
                 //SEND
-                req.OnUploading(0, 0);
+                request.OnUploadProgressed(0, 0);
                 var buffer = new byte[4096];
 
                 var totalBytesWritten = 0L;
 
                 var contentLength = inputStream.Length;
-                request.AllowWriteStreamBuffering = false;
-                request.ContentLength = inputStream.Length;
+                webRequest.AllowWriteStreamBuffering = false;
+                webRequest.ContentLength = inputStream.Length;
 
-                foreach (var header in req.Headers)
+                foreach (var header in request.Headers)
                     switch (header.Key)
                     {
-                        case "Content-Length":
-                            request.ContentLength = long.Parse(header.Value);
+                        case TusHeaderNames.ContentLength:
+                            webRequest.ContentLength = long.Parse(header.Value);
                             break;
-                        case "Content-Type":
-                            request.ContentType = header.Value;
+                        case TusHeaderNames.ContentType:
+                            webRequest.ContentType = header.Value;
                             break;
                         default:
-                            request.Headers.Add(header.Key, header.Value);
+                            webRequest.Headers.Add(header.Key, header.Value);
                             break;
                     }
 
-                if (req.BodyBytes.Length > 0)
-                    using (var requestStream = request.GetRequestStream())
+                if (request.BodyBytes.Length > 0)
+                    using (var requestStream = webRequest.GetRequestStream())
                     {
                         inputStream.Seek(0, SeekOrigin.Begin);
                         var bytesWritten = inputStream.Read(buffer, 0, buffer.Length);
@@ -73,19 +72,19 @@ namespace TusDotNetClient
                         {
                             totalBytesWritten += bytesWritten;
 
-                            req.OnUploading(totalBytesWritten, contentLength);
+                            request.OnUploadProgressed(totalBytesWritten, contentLength);
 
                             requestStream.Write(buffer, 0, bytesWritten);
 
                             bytesWritten = inputStream.Read(buffer, 0, buffer.Length);
 
-                            req.CancelToken.ThrowIfCancellationRequested();
+                            request.CancelToken.ThrowIfCancellationRequested();
                         }
                     }
 
-                req.FireDownloading(0, 0);
+                request.OnDownloadProgressed(0, 0);
 
-                var response = (HttpWebResponse) request.GetResponse();
+                var response = (HttpWebResponse) webRequest.GetResponse();
 
                 //contentLength=0 for gzipped responses due to .net bug
                 contentLength = Math.Max(response.ContentLength, 0);
@@ -96,22 +95,22 @@ namespace TusDotNetClient
                 if (response.GetResponseStream() is Stream responseStream)
                     using (responseStream)
                     {
-                        var bytesread = 0;
-                        var totalbytesread = 0L;
+                        var bytesRead = 0;
+                        var totalBytesRead = 0L;
 
-                        bytesread = responseStream.Read(buffer, 0, buffer.Length);
+                        bytesRead = responseStream.Read(buffer, 0, buffer.Length);
 
-                        while (bytesread > 0)
+                        while (bytesRead > 0)
                         {
-                            totalbytesread += bytesread;
+                            totalBytesRead += bytesRead;
 
-                            req.FireDownloading(totalbytesread, contentLength);
+                            request.OnDownloadProgressed(totalBytesRead, contentLength);
 
-                            outputStream.Write(buffer, 0, bytesread);
+                            outputStream.Write(buffer, 0, bytesRead);
 
-                            bytesread = responseStream.Read(buffer, 0, buffer.Length);
+                            bytesRead = responseStream.Read(buffer, 0, buffer.Length);
 
-                            req.CancelToken.ThrowIfCancellationRequested();
+                            request.CancelToken.ThrowIfCancellationRequested();
                         }
                     }
 

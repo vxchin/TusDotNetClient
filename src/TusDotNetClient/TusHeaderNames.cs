@@ -8,6 +8,7 @@ namespace TusDotNetClient
         public const string TusMaxSize = "Tus-Max-Size";
         public const string UploadOffset = "Upload-Offset";
         public const string UploadChecksum = "Upload-Checksum";
+        public const string ContentLength = "Content-Length";
         public const string ContentType = "Content-Type";
     }
 }

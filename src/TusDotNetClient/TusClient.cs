@@ -12,8 +12,6 @@ namespace TusDotNetClient
 {
     public partial class TusClient
     {
-        public delegate void ProgressDelegate(long bytesTransferred, long bytesTotal);
-
         public event ProgressDelegate UploadProgress;
 
         public event ProgressDelegate DownloadProgress;
@@ -97,7 +95,7 @@ namespace TusDotNetClient
                 request.AddHeader(TusHeaderNames.UploadOffset, offset.ToString());
                 request.AddHeader(TusHeaderNames.UploadChecksum, $"sha1 {Convert.ToBase64String(sha1Hash)}");
                 request.AddHeader(TusHeaderNames.ContentType, "application/offset+octet-stream");
-                request.Uploading += OnUploadProgress;
+                request.UploadProgressed += OnUploadProgress;
 
                 try
                 {
@@ -134,7 +132,7 @@ namespace TusDotNetClient
         {
             var client = new TusHttpClient();
             var request = new TusHttpRequest(url, RequestMethod.Get, null, _cancellationSource.Token);
-            request.Downloading += OnDownloadProgress;
+            request.DownloadProgressed += OnDownloadProgress;
             var response = client.PerformRequest(request);
             return response;
         }
