@@ -44,7 +44,7 @@ namespace TusDotNetClient
             BodyBytes = bodyBytes ?? Array.Empty<byte>();
             CancelToken = cancelToken ?? CancellationToken.None;
             
-            _headers.Add("Tus-Resumable", "1.0.0");
+            _headers.Add(TusHeaderNames.TusResumable, "1.0.0");
         }
 
         public void AddHeader(string key, string value) => _headers.Add(key, value);
