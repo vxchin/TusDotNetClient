@@ -19,37 +19,20 @@ namespace TusDotNetClient
 
         public CancellationToken CancelToken;
 
-        public string BodyText
+        public TusHttpRequest(string url)
         {
-            get => System.Text.Encoding.UTF8.GetString(BodyBytes);
-            set => BodyBytes = System.Text.Encoding.UTF8.GetBytes(value);
-        }
-        
-
-        public TusHttpRequest(string u)
-        {
-            Url = new Uri(u);
+            Url = new Uri(url);
             Method = "GET";
             Headers = new Dictionary<string, string>();
             BodyBytes = new byte[0];
         }
 
-        public void AddHeader(string k,string v)
-        {
-            Headers[k] = v;
-        }
+        public void AddHeader(string k,string v) => Headers[k] = v;
 
-        public void FireUploading(long bytesTransferred, long bytesTotal)
-        {
-            if (Uploading != null)
-                Uploading(bytesTransferred, bytesTotal);
-        }
+        public void OnUploading(long bytesTransferred, long bytesTotal) => 
+            Uploading?.Invoke(bytesTransferred, bytesTotal);
 
-        public void FireDownloading(long bytesTransferred, long bytesTotal)
-        {
-            if (Downloading != null)
-                Downloading(bytesTransferred, bytesTotal);
-        }
-
+        public void FireDownloading(long bytesTransferred, long bytesTotal) => 
+            Downloading?.Invoke(bytesTransferred, bytesTotal);
     }
 }
