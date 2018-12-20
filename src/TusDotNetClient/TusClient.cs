@@ -42,10 +42,12 @@ namespace TusDotNetClient
             var client = new TusHttpClient {Proxy = Proxy};
 
             var request = new TusHttpRequest(url, RequestMethod.Post);
-            request.AddHeader("Upload-Length", uploadLength.ToString());
-            request.AddHeader("Content-Length", "0");
+            request.AddHeader(TusHeaderNames.UploadLength, uploadLength.ToString());
+            request.AddHeader(TusHeaderNames.ContentLength, "0");
+            if (metadata.TryGetValue(TusHeaderNames.ContentType, out var contentType))
+                request.AddHeader(TusHeaderNames.ContentType, contentType);
 
-            request.AddHeader("Upload-Metadata", string.Join(",", metadata
+            request.AddHeader(TusHeaderNames.UploadMetadata, string.Join(",", metadata
                 .Select(md =>
                     $"{md.Key.Replace(" ", "").Replace(",", "")} {Convert.ToBase64String(Encoding.UTF8.GetBytes(md.Value))}")));
 
