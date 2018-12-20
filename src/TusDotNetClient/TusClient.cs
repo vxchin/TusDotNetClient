@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace TusDotNetClient
 {
-    public class TusClient
+    public partial class TusClient
     {
         public delegate void UploadingEvent(long bytesTransferred, long bytesTotal);
 
@@ -206,16 +206,6 @@ namespace TusDotNetClient
             }
         }
 
-        public class TusServerInfo
-        {
-            public string Version = "";
-            public string SupportedVersions = "";
-            public string Extensions = "";
-            public long MaxSize = 0;
-
-            public bool SupportsDelete => Extensions.Contains("termination");
-        }
-
         public TusServerInfo GetServerInfo(string url)
         {
             var client = new TusHttpClient();
@@ -223,30 +213,17 @@ namespace TusDotNetClient
 
             var response = client.PerformRequest(request);
 
-            if (response.StatusCode == HttpStatusCode.NoContent || response.StatusCode == HttpStatusCode.OK)
-            {
-                // Spec says NoContent but tusd gives OK because of browser bugs
-                var info = new TusServerInfo();
-                response.Headers.TryGetValue("Tus-Resumable", out info.Version);
-                response.Headers.TryGetValue("Tus-Version", out info.SupportedVersions);
-                response.Headers.TryGetValue("Tus-Extension", out info.Extensions);
-
-                string MaxSize;
-                if (response.Headers.TryGetValue("Tus-Max-Size", out MaxSize))
-                {
-                    info.MaxSize = long.Parse(MaxSize);
-                }
-                else
-                {
-                    info.MaxSize = 0;
-                }
-
-                return info;
-            }
-            else
-            {
+            if (response.StatusCode != HttpStatusCode.NoContent && response.StatusCode != HttpStatusCode.OK)
                 throw new Exception("getServerInfo failed. " + response.ResponseString);
-            }
+
+            // Spec says NoContent but tusd gives OK because of browser bugs
+            response.Headers.TryGetValue(TusHeaderNames.TusResumable, out var version);
+            response.Headers.TryGetValue(TusHeaderNames.TusVersion, out var supportedVersion);
+            response.Headers.TryGetValue(TusHeaderNames.TusExtension, out var extensions);
+            response.Headers.TryGetValue(TusHeaderNames.TusMaxSize, out var maxSizeString);
+                long.TryParse(maxSizeString, out var maxSize);
+
+            return new TusServerInfo(version, supportedVersion, extensions, maxSize);
         }
 
         public bool Delete(string url)
