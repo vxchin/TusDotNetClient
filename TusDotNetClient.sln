@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TusDotNetClient", "src\TusDotNetClient\TusDotNetClient.csproj", "{B81309A8-D42F-4DC7-A10F-A67D95D46E26}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TusDotNetClientTests", "tests\TusDotNetClientTests\TusDotNetClientTests.csproj", "{AF358546-787A-45C1-95A2-0C6162A25C5E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,17 @@ Global
 		{B81309A8-D42F-4DC7-A10F-A67D95D46E26}.Release|x64.Build.0 = Release|Any CPU
 		{B81309A8-D42F-4DC7-A10F-A67D95D46E26}.Release|x86.ActiveCfg = Release|Any CPU
 		{B81309A8-D42F-4DC7-A10F-A67D95D46E26}.Release|x86.Build.0 = Release|Any CPU
+		{AF358546-787A-45C1-95A2-0C6162A25C5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF358546-787A-45C1-95A2-0C6162A25C5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF358546-787A-45C1-95A2-0C6162A25C5E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AF358546-787A-45C1-95A2-0C6162A25C5E}.Debug|x64.Build.0 = Debug|Any CPU
+		{AF358546-787A-45C1-95A2-0C6162A25C5E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AF358546-787A-45C1-95A2-0C6162A25C5E}.Debug|x86.Build.0 = Debug|Any CPU
+		{AF358546-787A-45C1-95A2-0C6162A25C5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF358546-787A-45C1-95A2-0C6162A25C5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF358546-787A-45C1-95A2-0C6162A25C5E}.Release|x64.ActiveCfg = Release|Any CPU
+		{AF358546-787A-45C1-95A2-0C6162A25C5E}.Release|x64.Build.0 = Release|Any CPU
+		{AF358546-787A-45C1-95A2-0C6162A25C5E}.Release|x86.ActiveCfg = Release|Any CPU
+		{AF358546-787A-45C1-95A2-0C6162A25C5E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

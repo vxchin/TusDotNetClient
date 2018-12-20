@@ -628,3 +628,6 @@ ASALocalRun/
 .localhistory/
 
 # End of https://www.gitignore.io/api/node,rider,linux,macos,windows,monodevelop,visualstudio,jetbrains+all,visualstudiocode
+
+tusd
+tusd.exe
