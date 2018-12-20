@@ -147,7 +147,7 @@ namespace TusDotNetClient
             }
             catch (TusException ex)
             {
-                return new TusHttpResponse {StatusCode = ex.StatusCode};
+                return new TusHttpResponse(ex.StatusCode);
             }
         }
 

@@ -1,19 +1,25 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using System.Text;
 
 namespace TusDotNetClient
 {
     public class TusHttpResponse
     {
-        public byte[] ResponseBytes { get; set; }
-        public string ResponseString => System.Text.Encoding.UTF8.GetString(ResponseBytes);
-        public HttpStatusCode StatusCode { get; set; }
-        public Dictionary<string, string> Headers { get; set; }
+        private readonly Dictionary<string, string> _headers = new Dictionary<string, string>();
 
-        public TusHttpResponse()
+        public HttpStatusCode StatusCode { get; }
+        public IReadOnlyDictionary<string, string> Headers => _headers;
+        public byte[] ResponseBytes { get; }
+        public string ResponseString => Encoding.UTF8.GetString(ResponseBytes);
+
+        public TusHttpResponse(HttpStatusCode statusCode, byte[] responseBytes = null)
         {
-            Headers = new Dictionary<string, string>();
+            StatusCode = statusCode;
+            ResponseBytes = responseBytes;
         }
 
+        public void AddHeader(string key, string value) =>
+            _headers.Add(key, value);
     }
 }

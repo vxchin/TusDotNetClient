@@ -114,15 +114,9 @@ namespace TusDotNetClient
                         }
                     }
 
-                var resp = new TusHttpResponse
-                {
-                    ResponseBytes = outputStream.ToArray(),
-                    StatusCode = response.StatusCode
-                };
+                var resp = new TusHttpResponse(response.StatusCode, outputStream.ToArray());
                 foreach (string headerName in response.Headers.Keys)
-                {
-                    resp.Headers[headerName] = response.Headers[headerName];
-                }
+                    resp.AddHeader(headerName, response.Headers[headerName]);
 
                 return resp;
             }
