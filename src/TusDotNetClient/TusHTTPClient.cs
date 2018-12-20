@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -88,10 +87,8 @@ namespace TusDotNetClient
 
                 var response = (HttpWebResponse) request.GetResponse();
 
-
-                contentLength = 0;
-                contentLength = response.ContentLength;
                 //contentLength=0 for gzipped responses due to .net bug
+                contentLength = Math.Max(response.ContentLength, 0);
 
                 buffer = new byte[16 * 1024];
                 var outputStream = new MemoryStream();
