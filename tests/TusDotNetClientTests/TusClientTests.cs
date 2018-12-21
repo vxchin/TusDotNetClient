@@ -39,9 +39,9 @@ namespace TusDotNetClientTests
                 new FileInfo("data.txt"));
             
             
-            var file = new FileInfo(Path.Combine("data", $"{url.Split('/').Last()}.bin"));
-            file.Exists.ShouldBe(true);
-            file.Length.ShouldBe(0);
+            var upload = new FileInfo(Path.Combine("data", $"{url.Split('/').Last()}.bin"));
+            upload.Exists.ShouldBe(true);
+            upload.Length.ShouldBe(0);
         }
 
         public void Dispose()
