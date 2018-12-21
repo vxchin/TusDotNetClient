@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>TusDotNetClient</RootNamespace>
     <AssemblyName>TusDotNetClient</AssemblyName>
+    <VersionPrefix>0.1.0</VersionPrefix>
   </PropertyGroup>
 
 </Project>
