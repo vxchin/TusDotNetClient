@@ -5,6 +5,12 @@
     <RootNamespace>TusDotNetClient</RootNamespace>
     <AssemblyName>TusDotNetClient</AssemblyName>
     <VersionPrefix>0.1.1</VersionPrefix>
+    <PackageId>TusDotNetClient</PackageId>
+    <Authors>jonindico</Authors>
+    <Description>A client library for interacting with a Tus enabled server.</Description>
+    <RepositoryUrl>https://github.com/Jon-Indico/TusDotNetClient</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Jon-Indico/TusDotNetClient</PackageProjectUrl>
+    <License>MIT</License>
   </PropertyGroup>
 
 </Project>
