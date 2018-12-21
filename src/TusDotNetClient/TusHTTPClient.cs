@@ -39,7 +39,6 @@ namespace TusDotNetClient
                 }
 
                 //SEND
-                request.OnUploadProgressed(0, 0);
                 var buffer = new byte[4096];
 
                 var totalBytesWritten = 0L;
@@ -68,6 +67,7 @@ namespace TusDotNetClient
                         inputStream.Seek(0, SeekOrigin.Begin);
                         var bytesWritten = inputStream.Read(buffer, 0, buffer.Length);
 
+                        request.OnUploadProgressed(0, contentLength);
                         while (bytesWritten > 0)
                         {
                             totalBytesWritten += bytesWritten;
