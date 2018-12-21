@@ -8,11 +8,11 @@ using Xunit;
 
 namespace TusDotNetClientTests
 {
-    public class TusClientShould : IDisposable
+    public class TusClientTests : IDisposable
     {
         private readonly Process _tusProcess;
 
-        public TusClientShould()
+        public TusClientTests()
         {
             Directory.CreateDirectory("data").Delete(true);
             _tusProcess = Process.Start(new DirectoryInfo(Directory.GetCurrentDirectory())
@@ -27,7 +27,7 @@ namespace TusDotNetClientTests
         }
 
         [Fact]
-        public void CreateFileEntryOnDiskWhenCallingCreate()
+        public void AfterCallingCreate_DataShouldContainAFile()
         {
             var data = Guid.NewGuid().ToString();
             File.WriteAllText("data.txt", data);
@@ -39,7 +39,9 @@ namespace TusDotNetClientTests
                 new FileInfo("data.txt"));
             
             
-            File.Exists(Path.Combine("data", $"{url.Split('/').Last()}.bin")).ShouldBe(true);
+            var file = new FileInfo(Path.Combine("data", $"{url.Split('/').Last()}.bin"));
+            file.Exists.ShouldBe(true);
+            file.Length.ShouldBe(0);
         }
 
         public void Dispose()
