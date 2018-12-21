@@ -11,23 +11,23 @@ namespace TusDotNetClientTests
     public class TusClientTests : IClassFixture<Fixture>
     {
         private readonly string _dataDirectoryPath;
+        private readonly FileInfo _smallTextFile;
 
         public TusClientTests(Fixture fixture)
         {
             _dataDirectoryPath = fixture.DataDirectory.FullName;
+            _smallTextFile = fixture.SmallTextFile;
         }
         
         [Fact]
         public void AfterCallingCreate_DataShouldContainAFile()
         {
-            var data = Guid.NewGuid().ToString();
-            File.WriteAllText(Path.Combine(_dataDirectoryPath, "data.txt"), data);
             var sut = new TusClient();
 
 
             var url = sut.Create(
                 "http://localhost:1080/files/",
-                new FileInfo("data.txt"));
+                _smallTextFile);
 
 
             var upload = new FileInfo(Path.Combine(_dataDirectoryPath, $"{url.Split('/').Last()}.bin"));
@@ -38,20 +38,17 @@ namespace TusDotNetClientTests
         [Fact]
         public void AfterCallingCreateAndUpload_UploadedFileShouldBeTheSameAsTheOriginalFile()
         {
-            var data = Guid.NewGuid().ToString();
-            var file = new FileInfo(Path.Combine(_dataDirectoryPath, "data.txt"));
-            File.WriteAllText(file.FullName, data);
             var sut = new TusClient();
 
 
-            var url = sut.Create("http://localhost:1080/files/", file, ("Content-Type", "text/plain"));
-            sut.Upload(url, file);
+            var url = sut.Create("http://localhost:1080/files/", _smallTextFile, ("Content-Type", "text/plain"));
+            sut.Upload(url, _smallTextFile);
 
 
             var upload = new FileInfo(Path.Combine(_dataDirectoryPath, $"{url.Split('/').Last()}.bin"));
             upload.Exists.ShouldBe(true);
-            upload.Length.ShouldBe(file.Length);
-            using (var fileStream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read))
+            upload.Length.ShouldBe(_smallTextFile.Length);
+            using (var fileStream = new FileStream(_smallTextFile.FullName, FileMode.Open, FileAccess.Read))
             using (var uploadStream = new FileStream(upload.FullName, FileMode.Open, FileAccess.Read))
             {
                 var fileBytes = new byte[fileStream.Length];
@@ -65,18 +62,15 @@ namespace TusDotNetClientTests
         [Fact]
         public void AfterCallingDownload_DownloadedFileShouldBeTheSameAsTheOriginalFile()
         {
-            var data = Guid.NewGuid().ToString();
-            var file = new FileInfo(Path.Combine(_dataDirectoryPath, "data.txt"));
-            File.WriteAllText(file.FullName, data);
             var sut = new TusClient();
 
 
-            var url = sut.Create("http://localhost:1080/files/", file, ("Content-Type", "text/plain"));
-            sut.Upload(url, file);
+            var url = sut.Create("http://localhost:1080/files/", _smallTextFile, ("Content-Type", "text/plain"));
+            sut.Upload(url, _smallTextFile);
             var response = sut.Download(url);
 
 
-            using (var fileStream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read))
+            using (var fileStream = new FileStream(_smallTextFile.FullName, FileMode.Open, FileAccess.Read))
             {
                 var fileBytes = new byte[fileStream.Length];
                 fileStream.Read(fileBytes, 0, fileBytes.Length);
@@ -87,22 +81,19 @@ namespace TusDotNetClientTests
         [Fact]
         public void CallingHead_ShouldReturnProgressOfUploadedFile()
         {
-            var data = Guid.NewGuid().ToString();
-            var file = new FileInfo(Path.Combine(_dataDirectoryPath, "data.txt"));
-            File.WriteAllText(file.FullName, data);
             var sut = new TusClient();
 
 
-            var url = sut.Create("http://localhost:1080/files/", file, ("Content-Type", "text/plain"));
+            var url = sut.Create("http://localhost:1080/files/", _smallTextFile, ("Content-Type", "text/plain"));
             var headBeforeUpload = sut.Head(url);
-            sut.Upload(url, file);
+            sut.Upload(url, _smallTextFile);
             var headAfterUpload = sut.Head(url);
 
 
             headBeforeUpload.Headers.Keys.ShouldContain("Upload-Offset");
             headBeforeUpload.Headers["Upload-Offset"].ShouldBe("0");
             headAfterUpload.Headers.Keys.ShouldContain("Upload-Offset");
-            headAfterUpload.Headers["Upload-Offset"].ShouldBe(file.Length.ToString());
+            headAfterUpload.Headers["Upload-Offset"].ShouldBe(_smallTextFile.Length.ToString());
         }
 
         [Fact]
@@ -122,21 +113,18 @@ namespace TusDotNetClientTests
         [Fact]
         public void CallingDelete_ShouldRemoveUploadedFile()
         {
-            var data = Guid.NewGuid().ToString();
-            var file = new FileInfo(Path.Combine(_dataDirectoryPath, "data.txt"));
-            File.WriteAllText(file.FullName, data);
             var sut = new TusClient();
 
 
-            var url = sut.Create("http://localhost:1080/files/", file, ("Content-Type", "text/plain"));
-            sut.Upload(url, file);
+            var url = sut.Create("http://localhost:1080/files/", _smallTextFile, ("Content-Type", "text/plain"));
+            sut.Upload(url, _smallTextFile);
             var uploadHeadResponse = sut.Head(url);
             var deleteResult = sut.Delete(url);
             
             
             deleteResult.ShouldBe(true);
             uploadHeadResponse.Headers.Keys.ShouldContain("Upload-Offset");
-            uploadHeadResponse.Headers["Upload-Offset"].ShouldBe(file.Length.ToString());
+            uploadHeadResponse.Headers["Upload-Offset"].ShouldBe(_smallTextFile.Length.ToString());
             File.Exists(Path.Combine(_dataDirectoryPath, $"url.Split('/').Last().bin")).ShouldBe(false);
         }
     }

@@ -10,6 +10,7 @@ namespace TusDotNetClientTests
         private readonly Process _tusProcess;
 
         public DirectoryInfo DataDirectory;
+        public FileInfo SmallTextFile;
         
         public Fixture()
         {
@@ -23,6 +24,9 @@ namespace TusDotNetClientTests
                                             .FullName ??
                                         throw new ArgumentException(
                                             "tusd executable must be present in test project directory"));
+            
+            SmallTextFile = new FileInfo(Path.Combine(DataDirectory.FullName, "small_text_file.txt"));
+            File.WriteAllText(SmallTextFile.FullName, Guid.NewGuid().ToString());
         }
         
         public void Dispose()
