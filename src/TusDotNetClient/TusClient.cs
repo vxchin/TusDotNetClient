@@ -44,8 +44,6 @@ namespace TusDotNetClient
             var request = new TusHttpRequest(url, RequestMethod.Post);
             request.AddHeader(TusHeaderNames.UploadLength, uploadLength.ToString());
             request.AddHeader(TusHeaderNames.ContentLength, "0");
-            if (metadata.TryGetValue(TusHeaderNames.ContentType, out var contentType))
-                request.AddHeader(TusHeaderNames.ContentType, contentType);
 
             request.AddHeader(TusHeaderNames.UploadMetadata, string.Join(",", metadata
                 .Select(md =>
