@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Linq;
 using Shouldly;
@@ -11,23 +10,22 @@ namespace TusDotNetClientTests
     public class TusClientTests : IClassFixture<Fixture>
     {
         private readonly string _dataDirectoryPath;
-        private readonly FileInfo _smallTextFile;
 
-        public TusClientTests(Fixture fixture)
+        public TusClientTests()
         {
-            _dataDirectoryPath = fixture.DataDirectory.FullName;
-            _smallTextFile = fixture.SmallTextFile;
+            _dataDirectoryPath = Fixture.DataDirectory.FullName;
         }
         
-        [Fact]
-        public void AfterCallingCreate_DataShouldContainAFile()
+        [Theory]
+        [MemberData(nameof(Fixture.GetTestFiles), MemberType = typeof(Fixture))]
+        public void AfterCallingCreate_DataShouldContainAFile(FileInfo file)
         {
             var sut = new TusClient();
 
 
             var url = sut.Create(
                 "http://localhost:1080/files/",
-                _smallTextFile);
+                file);
 
 
             var upload = new FileInfo(Path.Combine(_dataDirectoryPath, $"{url.Split('/').Last()}.bin"));
@@ -35,20 +33,21 @@ namespace TusDotNetClientTests
             upload.Length.ShouldBe(0);
         }
 
-        [Fact]
-        public void AfterCallingCreateAndUpload_UploadedFileShouldBeTheSameAsTheOriginalFile()
+        [Theory]
+        [MemberData(nameof(Fixture.GetTestFiles), MemberType = typeof(Fixture))]
+        public void AfterCallingCreateAndUpload_UploadedFileShouldBeTheSameAsTheOriginalFile(FileInfo file)
         {
             var sut = new TusClient();
 
 
-            var url = sut.Create("http://localhost:1080/files/", _smallTextFile, ("Content-Type", "text/plain"));
-            sut.Upload(url, _smallTextFile);
+            var url = sut.Create("http://localhost:1080/files/", file);
+            sut.Upload(url, file);
 
 
             var upload = new FileInfo(Path.Combine(_dataDirectoryPath, $"{url.Split('/').Last()}.bin"));
             upload.Exists.ShouldBe(true);
-            upload.Length.ShouldBe(_smallTextFile.Length);
-            using (var fileStream = new FileStream(_smallTextFile.FullName, FileMode.Open, FileAccess.Read))
+            upload.Length.ShouldBe(file.Length);
+            using (var fileStream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read))
             using (var uploadStream = new FileStream(upload.FullName, FileMode.Open, FileAccess.Read))
             {
                 var fileBytes = new byte[fileStream.Length];
@@ -59,18 +58,19 @@ namespace TusDotNetClientTests
             }
         }
 
-        [Fact]
-        public void AfterCallingDownload_DownloadedFileShouldBeTheSameAsTheOriginalFile()
+        [Theory]
+        [MemberData(nameof(Fixture.GetTestFiles), MemberType = typeof(Fixture))]
+        public void AfterCallingDownload_DownloadedFileShouldBeTheSameAsTheOriginalFile(FileInfo file)
         {
             var sut = new TusClient();
 
 
-            var url = sut.Create("http://localhost:1080/files/", _smallTextFile, ("Content-Type", "text/plain"));
-            sut.Upload(url, _smallTextFile);
+            var url = sut.Create("http://localhost:1080/files/", file);
+            sut.Upload(url, file);
             var response = sut.Download(url);
 
 
-            using (var fileStream = new FileStream(_smallTextFile.FullName, FileMode.Open, FileAccess.Read))
+            using (var fileStream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read))
             {
                 var fileBytes = new byte[fileStream.Length];
                 fileStream.Read(fileBytes, 0, fileBytes.Length);
@@ -78,22 +78,23 @@ namespace TusDotNetClientTests
             }
         }
 
-        [Fact]
-        public void CallingHead_ShouldReturnProgressOfUploadedFile()
+        [Theory]
+        [MemberData(nameof(Fixture.GetTestFiles), MemberType = typeof(Fixture))]
+        public void CallingHead_ShouldReturnProgressOfUploadedFile(FileInfo file)
         {
             var sut = new TusClient();
 
 
-            var url = sut.Create("http://localhost:1080/files/", _smallTextFile, ("Content-Type", "text/plain"));
+            var url = sut.Create("http://localhost:1080/files/", file);
             var headBeforeUpload = sut.Head(url);
-            sut.Upload(url, _smallTextFile);
+            sut.Upload(url, file);
             var headAfterUpload = sut.Head(url);
 
 
             headBeforeUpload.Headers.Keys.ShouldContain("Upload-Offset");
             headBeforeUpload.Headers["Upload-Offset"].ShouldBe("0");
             headAfterUpload.Headers.Keys.ShouldContain("Upload-Offset");
-            headAfterUpload.Headers["Upload-Offset"].ShouldBe(_smallTextFile.Length.ToString());
+            headAfterUpload.Headers["Upload-Offset"].ShouldBe(file.Length.ToString());
         }
 
         [Fact]
@@ -110,21 +111,22 @@ namespace TusDotNetClientTests
             response.SupportedVersions.ShouldNotBeNullOrWhiteSpace();
         }
 
-        [Fact]
-        public void CallingDelete_ShouldRemoveUploadedFile()
+        [Theory]
+        [MemberData(nameof(Fixture.GetTestFiles), MemberType = typeof(Fixture))]
+        public void CallingDelete_ShouldRemoveUploadedFile(FileInfo file)
         {
             var sut = new TusClient();
 
 
-            var url = sut.Create("http://localhost:1080/files/", _smallTextFile, ("Content-Type", "text/plain"));
-            sut.Upload(url, _smallTextFile);
+            var url = sut.Create("http://localhost:1080/files/", file);
+            sut.Upload(url, file);
             var uploadHeadResponse = sut.Head(url);
             var deleteResult = sut.Delete(url);
             
             
             deleteResult.ShouldBe(true);
             uploadHeadResponse.Headers.Keys.ShouldContain("Upload-Offset");
-            uploadHeadResponse.Headers["Upload-Offset"].ShouldBe(_smallTextFile.Length.ToString());
+            uploadHeadResponse.Headers["Upload-Offset"].ShouldBe(file.Length.ToString());
             File.Exists(Path.Combine(_dataDirectoryPath, $"url.Split('/').Last().bin")).ShouldBe(false);
         }
     }
