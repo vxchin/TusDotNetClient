@@ -95,7 +95,6 @@ namespace TusDotNetClient
                 request.AddHeader(TusHeaderNames.UploadOffset, offset.ToString());
                 request.AddHeader(TusHeaderNames.UploadChecksum, $"sha1 {Convert.ToBase64String(sha1Hash)}");
                 request.AddHeader(TusHeaderNames.ContentType, "application/offset+octet-stream");
-                request.UploadProgressed += OnUploadProgress;
 
                 try
                 {
@@ -104,6 +103,8 @@ namespace TusDotNetClient
                         throw new Exception("WriteFileInServer failed. " + response.ResponseString);
 
                     offset += bytesRead;
+                    
+                    OnUploadProgress(offset, fs.Length);
                 }
                 catch (IOException ex)
                 {
