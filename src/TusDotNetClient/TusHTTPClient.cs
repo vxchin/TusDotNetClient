@@ -82,7 +82,6 @@ namespace TusDotNetClient
                         }
                     }
 
-                request.OnDownloadProgressed(0, 0);
 
                 var response = (HttpWebResponse) webRequest.GetResponse();
 
@@ -100,6 +99,7 @@ namespace TusDotNetClient
 
                         bytesRead = responseStream.Read(buffer, 0, buffer.Length);
 
+                        request.OnDownloadProgressed(0, contentLength);
                         while (bytesRead > 0)
                         {
                             totalBytesRead += bytesRead;
