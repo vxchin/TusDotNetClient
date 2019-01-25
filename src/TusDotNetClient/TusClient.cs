@@ -17,6 +17,11 @@ namespace TusDotNetClient
         public event ProgressDelegate DownloadProgress;
 
         private readonly CancellationTokenSource _cancellationSource = new CancellationTokenSource();
+        
+        private readonly double _chunkSize;
+
+        public TusClient(double chunkSize = 5.0) => 
+            _chunkSize = chunkSize;
 
         public IWebProxy Proxy { get; set; }
 
@@ -80,7 +85,7 @@ namespace TusDotNetClient
             var client = new TusHttpClient();
             SHA1 sha = new SHA1Managed();
 
-            var chunkSize = (int) Math.Ceiling(3 * 1024.0 * 1024.0); //3 mb
+            var chunkSize = (int) Math.Ceiling(_chunkSize * 1024.0 * 1024.0); // to MB
             if (offset == fs.Length)
                 OnUploadProgress(fs.Length, fs.Length);
 
@@ -102,7 +107,7 @@ namespace TusDotNetClient
                     if (response.StatusCode != HttpStatusCode.NoContent)
                         throw new Exception("WriteFileInServer failed. " + response.ResponseString);
 
-                    offset += bytesRead;
+                    offset = long.Parse(response.Headers[TusHeaderNames.UploadOffset]);
                     
                     OnUploadProgress(offset, fs.Length);
                 }
