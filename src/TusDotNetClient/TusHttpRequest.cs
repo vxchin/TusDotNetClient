@@ -17,7 +17,7 @@ namespace TusDotNetClient
     public class TusHttpRequest
     {
         private readonly Dictionary<string, string> _headers = new Dictionary<string, string>();
-        
+
         public event ProgressDelegate UploadProgressed;
 
         public event ProgressDelegate DownloadProgressed;
@@ -37,9 +37,13 @@ namespace TusDotNetClient
         {
             Url = new Uri(url);
             Method = method.ToString().ToUpperInvariant();
+#if NET45
+            BodyBytes = bodyBytes ?? new byte[0];
+#else
             BodyBytes = bodyBytes ?? Array.Empty<byte>();
+#endif
             CancelToken = cancelToken ?? CancellationToken.None;
-            
+
             _headers.Add(TusHeaderNames.TusResumable, "1.0.0");
         }
 
