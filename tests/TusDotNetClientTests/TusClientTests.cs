@@ -17,51 +17,73 @@ namespace TusDotNetClientTests
         {
             _dataDirectoryPath = Fixture.DataDirectory.FullName;
         }
-        
+
         [Theory]
         [MemberData(nameof(Fixture.TestFiles), MemberType = typeof(Fixture))]
-        public async Task AfterCallingCreate_DataShouldContainAFile(FileInfo file, bool passAsFileInfo)
+        public async Task AfterCallingCreate_DataShouldContainAFile(FileInfo file)
         {
             var sut = new TusClient();
 
-            string url;
-            if (passAsFileInfo)
-            {
-                url = await sut.CreateAsync(
-                TusEndpoint,
-                file);
-            }
-            else
-            {
-                url = await sut.CreateAsync(
+            var url = await sut.CreateAsync(
                 TusEndpoint,
                 file.Length);
-            }
 
-            var upload = new FileInfo(Path.Combine(_dataDirectoryPath, $"{url.Split('/').Last()}.bin"));
+            var upload = new FileInfo(Path.Combine(_dataDirectoryPath, $"{url.Split('/').Last()}"));
             upload.Exists.ShouldBe(true);
             upload.Length.ShouldBe(0);
         }
 
         [Theory]
         [MemberData(nameof(Fixture.TestFiles), MemberType = typeof(Fixture))]
-        public async Task AfterCallingCreateAndUpload_UploadedFileShouldBeTheSameAsTheOriginalFile(FileInfo file, bool passAsFileInfo)
+        public async Task AfterCallingCreate_WithFileInfo_DataShouldContainAFile(FileInfo file)
         {
             var sut = new TusClient();
 
-            string url;
-            if (passAsFileInfo)
-            {
-                url = await sut.CreateAsync(TusEndpoint, file);
-            }
-            else
-            {
-                url = await sut.CreateAsync(TusEndpoint, file.Length);
-            }
+            var url = await sut.CreateAsync(
+                TusEndpoint,
+                file);
+
+            var upload = new FileInfo(Path.Combine(_dataDirectoryPath, $"{url.Split('/').Last()}"));
+            upload.Exists.ShouldBe(true);
+            upload.Length.ShouldBe(0);
+        }
+
+        [Theory]
+        [MemberData(nameof(Fixture.TestFiles), MemberType = typeof(Fixture))]
+        public async Task AfterCallingCreateAndUpload_UploadedFileShouldBeTheSameAsTheOriginalFile(FileInfo file)
+        {
+            var sut = new TusClient();
+
+            var url = await sut.CreateAsync(TusEndpoint, file.Length);
 
             await sut.UploadAsync(url, file);
-            
-            var upload = new FileInfo(Path.Combine(_dataDirectoryPath, $"{url.Split('/').Last()}.bin"));
+
+            var upload = new FileInfo(Path.Combine(_dataDirectoryPath, $"{url.Split('/').Last()}"));
+            upload.Exists.ShouldBe(true);
+            upload.Length.ShouldBe(file.Length);
+            using (var fileStream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read))
+            using (var uploadStream = new FileStream(upload.FullName, FileMode.Open, FileAccess.Read))
+            {
+                var fileBytes = new byte[fileStream.Length];
+                fileStream.Read(fileBytes, 0, fileBytes.Length);
+                var uploadBytes = new byte[uploadStream.Length];
+                uploadStream.Read(uploadBytes, 0, uploadBytes.Length);
+                SHA1(uploadBytes).ShouldBe(SHA1(fileBytes));
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(Fixture.TestFiles), MemberType = typeof(Fixture))]
+        public async Task AfterCallingCreateAndUpload_WithFileUpload_UploadedFileShouldBeTheSameAsTheOriginalFile(
+            FileInfo file)
+        {
+            var sut = new TusClient();
+
+            var url = await sut.CreateAsync(TusEndpoint, file);
+
+            await sut.UploadAsync(url, file);
+
+            var upload = new FileInfo(Path.Combine(_dataDirectoryPath, $"{url.Split('/').Last()}"));
             upload.Exists.ShouldBe(true);
             upload.Length.ShouldBe(file.Length);
             using (var fileStream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read))
@@ -84,7 +106,7 @@ namespace TusDotNetClientTests
             var url = await sut.CreateAsync(TusEndpoint, file.Length);
             await sut.UploadAsync(url, file);
             var response = await sut.DownloadAsync(url);
-            
+
             using (var fileStream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read))
             {
                 var fileBytes = new byte[fileStream.Length];
@@ -138,7 +160,7 @@ namespace TusDotNetClientTests
             deleteResult.ShouldBe(true);
             uploadHeadResponse.Headers.Keys.ShouldContain("Upload-Offset");
             uploadHeadResponse.Headers["Upload-Offset"].ShouldBe(file.Length.ToString());
-            File.Exists(Path.Combine(_dataDirectoryPath, $"url.Split('/').Last().bin")).ShouldBe(false);
+            File.Exists(Path.Combine(_dataDirectoryPath, $"url.Split('/').Last()")).ShouldBe(false);
         }
     }
 }

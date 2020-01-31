@@ -30,12 +30,10 @@ namespace TusDotNetClientTests
                 }
             }
 
-            TestFiles = new object[][]
+            TestFiles = new[]
             {
-                new object[] {smallTextFile, true},
-                new object[] {largeSampleFile, true},
-                new object[] {smallTextFile, false},
-                new object[] {largeSampleFile, false},
+                new [] {smallTextFile},
+                new [] {largeSampleFile},
             };
         }
 
@@ -46,7 +44,7 @@ namespace TusDotNetClientTests
                                             .Parent?
                                             .Parent?
                                             .EnumerateFiles("tusd*")
-                                            .First()
+                                            .FirstOrDefault()?
                                             .FullName ??
                                         throw new ArgumentException(
                                             "tusd executable must be present in test project directory"));
