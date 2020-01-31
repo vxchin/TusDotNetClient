@@ -1,5 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>TusDotNetClient</RootNamespace>
@@ -11,6 +10,6 @@
     <PackageProjectUrl>https://github.com/Jon-Indico/TusDotNetClient</PackageProjectUrl>
     <License>MIT</License>
     <LangVersion>latest</LangVersion>
+    <Version>1.1.0</Version>
   </PropertyGroup>
-
 </Project>
