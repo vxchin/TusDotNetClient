@@ -12,10 +12,25 @@ using System.Threading.Tasks;
 namespace TusDotNetClient
 {
     /// <summary>
+    /// Represents the different hashing algorithm implementations supported by <see cref="TusClient"/>
+    /// </summary>
+    public enum HashingImplementation
+    {
+        Sha1Managed,
+        SHA1CryptoServiceProvider,
+    }
+    
+    /// <summary>
     /// A class to perform actions against a Tus enabled server.
     /// </summary>
     public class TusClient
     {
+        /// <summary>
+        /// Get or set the hashing algorithm implementation to be used for checksum calculation.
+        /// </summary>
+        public static HashingImplementation HashingImplementation { get; set; } =
+            HashingImplementation.Sha1Managed;
+        
         /// <summary>
         /// A mutable dictionary of headers which will be included with all requests.
         /// </summary>
@@ -145,7 +160,9 @@ namespace TusDotNetClient
                             .ConfigureAwait(false);
 
                         var client = new TusHttpClient();
-                        System.Security.Cryptography.SHA1CryptoServiceProvider sha = new System.Security.Cryptography.SHA1CryptoServiceProvider();
+                        var sha = HashingImplementation == HashingImplementation.Sha1Managed
+                            ? (SHA1) new SHA1Managed()
+                            : new SHA1CryptoServiceProvider();
 
                         var uploadChunkSize = ChunkSizeToMB(chunkSize);
 
