@@ -3,7 +3,7 @@
 
 ## Features
 - Supports tus v1.0.0
-- Protocol extensions supported: Creation, Termination
+- Protocol extensions supported: Creation, Termination & Creation With Upload
 - Upload progress events
 
 ## Usage
@@ -12,10 +12,12 @@ var file = new FileInfo(@"path/to/file.ext");
 var client = new TusClient();
 var fileUrl = await client.CreateAsync(Address, file.Length, metadata);
 await client.UploadAsync(fileUrl, file, chunkSize: 5D);
+// or
+var (fileUrl, responses) = await client.CreateWithUploadAsync(Address, file, metadata);
 ```
 
 ### Progress updates
-`UploadAsync` returns an object of type `TusOperation`, which exposes an event which will report the progress of the upload.
+`UploadAsync` and `UploadWithUploadAsync` returns an object of type `TusOperation`, which exposes an event which will report the progress of the upload.
 
 Store the return object in a variable and subscribe to the `Progressed` event for updates. The upload operation will not start until `TusOperation` is `await`ed.
 

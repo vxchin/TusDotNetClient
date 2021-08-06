@@ -162,5 +162,42 @@ namespace TusDotNetClientTests
             uploadHeadResponse.Headers["Upload-Offset"].ShouldBe(file.Length.ToString());
             File.Exists(Path.Combine(_dataDirectoryPath, $"url.Split('/').Last()")).ShouldBe(false);
         }
+
+        [Theory]
+        [MemberData(nameof(Fixture.TestFiles), MemberType = typeof(Fixture))]
+        public async Task AfterCallingCreateWithUpload_DataShouldContainAFile(FileInfo file)
+        {
+            var sut = new TusClient();
+
+            var (url, _) = await sut.CreateWithUploadAsync(
+                TusEndpoint,
+                file);
+
+            var upload = new FileInfo(Path.Combine(_dataDirectoryPath, $"{url.Split('/').Last()}"));
+            upload.Exists.ShouldBe(true);
+            upload.Length.ShouldBe(file.Length);
+        }
+
+        [Theory]
+        [MemberData(nameof(Fixture.TestFiles), MemberType = typeof(Fixture))]
+        public async Task AfterCallingCreateWithUpload_UploadedFileShouldBeTheSameAsTheOriginalFile(FileInfo file)
+        {
+            var sut = new TusClient();
+
+            var (url, _) = await sut.CreateWithUploadAsync(TusEndpoint, file);
+
+            var upload = new FileInfo(Path.Combine(_dataDirectoryPath, $"{url.Split('/').Last()}"));
+            upload.Exists.ShouldBe(true);
+            upload.Length.ShouldBe(file.Length);
+            using (var fileStream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read))
+            using (var uploadStream = new FileStream(upload.FullName, FileMode.Open, FileAccess.Read))
+            {
+                var fileBytes = new byte[fileStream.Length];
+                fileStream.Read(fileBytes, 0, fileBytes.Length);
+                var uploadBytes = new byte[uploadStream.Length];
+                uploadStream.Read(uploadBytes, 0, uploadBytes.Length);
+                SHA1(uploadBytes).ShouldBe(SHA1(fileBytes));
+            }
+        }
     }
 }
