@@ -159,7 +159,10 @@ namespace TusDotNetClient
                         var offset = await GetFileOffset(url)
                             .ConfigureAwait(false);
 
-                        var client = new TusHttpClient();
+                        var client = new TusHttpClient
+                        {
+                            Proxy = Proxy
+                        };
                         var sha = HashingImplementation == HashingImplementation.Sha1Managed
                             ? (SHA1) new SHA1Managed()
                             : new SHA1CryptoServiceProvider();
@@ -426,7 +429,10 @@ namespace TusDotNetClient
             new TusOperation<TusHttpResponse>(
                 async reportProgress =>
                 {
-                    var client = new TusHttpClient();
+                    var client = new TusHttpClient
+                    {
+                        Proxy = Proxy
+                    };
                     var request = new TusHttpRequest(
                         url,
                         RequestMethod.Get,
@@ -450,7 +456,10 @@ namespace TusDotNetClient
         /// <returns>The response from the Tus server.</returns>
         public async Task<TusHttpResponse> HeadAsync(string url)
         {
-            var client = new TusHttpClient();
+            var client = new TusHttpClient
+            {
+                Proxy = Proxy
+            };
             var request = new TusHttpRequest(url, RequestMethod.Head, AdditionalHeaders);
 
             try
@@ -472,7 +481,10 @@ namespace TusDotNetClient
         /// <exception cref="Exception">Throws if request fails.</exception>
         public async Task<TusServerInfo> GetServerInfo(string url)
         {
-            var client = new TusHttpClient();
+            var client = new TusHttpClient
+            {
+                Proxy = Proxy
+            };
             var request = new TusHttpRequest(url, RequestMethod.Options, AdditionalHeaders);
 
             var response = await client.PerformRequestAsync(request)
@@ -498,7 +510,10 @@ namespace TusDotNetClient
         /// <returns>A <see cref="bool"/> indicating whether the file is deleted.</returns>
         public async Task<bool> Delete(string url)
         {
-            var client = new TusHttpClient();
+            var client = new TusHttpClient
+            {
+                Proxy = Proxy
+            };
             var request = new TusHttpRequest(url, RequestMethod.Delete, AdditionalHeaders);
 
             var response = await client.PerformRequestAsync(request)
@@ -511,7 +526,10 @@ namespace TusDotNetClient
 
         private async Task<long> GetFileOffset(string url)
         {
-            var client = new TusHttpClient();
+            var client = new TusHttpClient
+            {
+                Proxy = Proxy
+            };
             var request = new TusHttpRequest(url, RequestMethod.Head, AdditionalHeaders);
 
             var response = await client.PerformRequestAsync(request)
