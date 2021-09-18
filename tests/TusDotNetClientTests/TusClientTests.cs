@@ -117,6 +117,28 @@ namespace TusDotNetClientTests
 
         [Theory]
         [MemberData(nameof(Fixture.TestFiles), MemberType = typeof(Fixture))]
+        public async Task AfterCallingDownloadToFile_DownloadedFileShouldBeTheSameAsTheOriginalFile(FileInfo file)
+        {
+            var sut = new TusClient();
+
+            var url = await sut.CreateAsync(TusEndpoint, file.Length);
+            await sut.UploadAsync(url, file);
+            var destFileName = $"{file.FullName}.downloaded";
+            var response = await sut.DownloadToFileAsync(url, destFileName);
+
+            using (var fileStream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read))
+            using (var destFileStream = response.File.OpenRead())
+            {
+                var fileBytes = new byte[fileStream.Length];
+                fileStream.Read(fileBytes, 0, fileBytes.Length);
+                var downloadedBytes = new byte[destFileStream.Length];
+                destFileStream.Read(downloadedBytes, 0, downloadedBytes.Length);
+                SHA1(downloadedBytes).ShouldBe(SHA1(fileBytes));
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(Fixture.TestFiles), MemberType = typeof(Fixture))]
         public async Task CallingHead_ShouldReturnProgressOfUploadedFile(FileInfo file)
         {
             var sut = new TusClient();

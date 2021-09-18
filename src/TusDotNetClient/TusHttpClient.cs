@@ -23,7 +23,38 @@ namespace TusDotNetClient
         /// <param name="request">The <see cref="TusHttpRequest"/> to execute.</param>
         /// <returns>A <see cref="TusHttpResponse"/> with the response data.</returns>
         /// <exception cref="TusException">Throws when the request fails.</exception>
-        public async Task<TusHttpResponse> PerformRequestAsync(TusHttpRequest request)
+        public Task<TusHttpResponse> PerformRequestAsync(TusHttpRequest request)
+        {
+            return PerformRequestAsync(request,
+                () => new MemoryStream(),
+                (response, outputStream) => new TusHttpResponse(
+                    response.StatusCode,
+                    response.Headers.AllKeys
+                        .ToDictionary(headerName => headerName, headerName => response.Headers.Get(headerName)),
+                    outputStream?.ToArray() ?? Array.Empty<byte>()));
+        }
+
+        /// <summary>
+        /// Perform a download-to-file request to the Tus server.
+        /// </summary>
+        /// <param name="request">The <see cref="TusHttpRequest"/> to execute.</param>
+        /// <param name="fileName">The full path of the destination file.</param>
+        /// <returns>A <see cref="TusHttpResponse"/> with the response data.</returns>
+        /// <exception cref="TusException">Throws when the request fails.</exception>
+        public Task<TusHttpFileResponse> PerformRequestAsync(TusHttpRequest request, string fileName)
+        {
+            return PerformRequestAsync(request,
+                () => File.OpenWrite(fileName),
+                (response, outputStream) => new TusHttpFileResponse(
+                    response.StatusCode,
+                    outputStream?.Name,
+                    response.Headers.AllKeys
+                        .ToDictionary(headerName => headerName, headerName => response.Headers.Get(headerName))));
+        }
+
+        private async Task<TResult> PerformRequestAsync<TStream, TResult>(
+            TusHttpRequest request, Func<TStream> outputStreamFactory,
+            Func<HttpWebResponse, TStream, TResult> resultFactory) where TStream : Stream
         {
             var segment = request.BodyBytes;
 
@@ -109,38 +140,34 @@ namespace TusDotNetClient
 
                 buffer = new byte[16 * 1024];
 
-                var outputStream = new MemoryStream();
+                var responseStream = response.GetResponseStream();
 
-                using (var responseStream = response.GetResponseStream())
+                if (responseStream is null) return resultFactory.Invoke(response, null);
+
+                using (responseStream)
+                using (var outputStream = outputStreamFactory.Invoke())
                 {
-                    if (responseStream != null)
+                    var bytesRead = await responseStream.ReadAsync(buffer, 0, buffer.Length, request.CancelToken)
+                        .ConfigureAwait(false);
+
+                    request.OnDownloadProgressed(0, contentLength);
+
+                    var totalBytesRead = 0L;
+                    while (bytesRead > 0)
                     {
-                        var bytesRead = await responseStream.ReadAsync(buffer, 0, buffer.Length, request.CancelToken)
+                        totalBytesRead += bytesRead;
+
+                        request.OnDownloadProgressed(totalBytesRead, contentLength);
+
+                        await outputStream.WriteAsync(buffer, 0, bytesRead, request.CancelToken)
                             .ConfigureAwait(false);
 
-                        request.OnDownloadProgressed(0, contentLength);
-
-                        var totalBytesRead = 0L;
-                        while (bytesRead > 0)
-                        {
-                            totalBytesRead += bytesRead;
-
-                            request.OnDownloadProgressed(totalBytesRead, contentLength);
-
-                            await outputStream.WriteAsync(buffer, 0, bytesRead, request.CancelToken)
-                                .ConfigureAwait(false);
-
-                            bytesRead = await responseStream.ReadAsync(buffer, 0, buffer.Length, request.CancelToken)
-                                .ConfigureAwait(false);
-                        }
+                        bytesRead = await responseStream.ReadAsync(buffer, 0, buffer.Length, request.CancelToken)
+                            .ConfigureAwait(false);
                     }
-                }
 
-                return new TusHttpResponse(
-                    response.StatusCode,
-                    response.Headers.AllKeys
-                        .ToDictionary(headerName => headerName, headerName => response.Headers.Get(headerName)),
-                    outputStream.ToArray());
+                    return resultFactory.Invoke(response, outputStream);
+                }
             }
             catch (OperationCanceledException cancelEx)
             {

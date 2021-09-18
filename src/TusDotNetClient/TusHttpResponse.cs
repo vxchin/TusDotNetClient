@@ -6,18 +6,10 @@ using System.Text;
 namespace TusDotNetClient
 {
     /// <summary>
-    /// Represents a response from a request made to a Tus enabled server.
+    /// Represents a response with content from a request made to a Tus enabled server.
     /// </summary>
-    public class TusHttpResponse
+    public class TusHttpResponse : TusHttpResponseBase
     {
-        /// <summary>
-        /// Get the HTTP status code from the Tus server.
-        /// </summary>
-        public HttpStatusCode StatusCode { get; }
-        /// <summary>
-        /// Get the HTTP headers from the response.
-        /// </summary>
-        public IReadOnlyDictionary<string, string> Headers { get; }
         /// <summary>
         /// Get the content of the HTTP response as bytes.
         /// </summary>
@@ -36,12 +28,8 @@ namespace TusDotNetClient
         public TusHttpResponse(
             HttpStatusCode statusCode,
             IDictionary<string, string> headers = null,
-            byte[] responseBytes = null)
+            byte[] responseBytes = null):base(statusCode, headers)
         {
-            StatusCode = statusCode;
-            Headers = headers is null
-                ? new Dictionary<string, string>(0)
-                : new Dictionary<string, string>(headers);
             ResponseBytes = responseBytes;
         }
     }

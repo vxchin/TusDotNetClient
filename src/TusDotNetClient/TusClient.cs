@@ -450,6 +450,37 @@ namespace TusDotNetClient
                 });
 
         /// <summary>
+        /// Download a file from the Tus server and save to a local file.
+        /// </summary>
+        /// <param name="url">The URL of a file at the Tus server.</param>
+        /// <param name="destFileName">The full path of the destination file.</param>
+        /// <param name="cancellationToken">A cancellation token to cancel the operation with.</param>
+        /// <returns>A <see cref="TusOperation{T}"/> which represents the download operation.</returns>
+        public TusOperation<TusHttpFileResponse> DownloadToFileAsync(string url, string destFileName, CancellationToken cancellationToken = default) =>
+            new TusOperation<TusHttpFileResponse>(
+                async reportProgress =>
+                {
+                    var client = new TusHttpClient
+                    {
+                        Proxy = Proxy
+                    };
+                    var request = new TusHttpRequest(
+                        url,
+                        RequestMethod.Get,
+                        AdditionalHeaders,
+                        cancelToken: cancellationToken);
+
+                    request.DownloadProgressed += reportProgress;
+
+                    var response = await client.PerformRequestAsync(request, destFileName)
+                        .ConfigureAwait(false);
+
+                    request.DownloadProgressed -= reportProgress;
+
+                    return response;
+                });
+
+        /// <summary>
         /// Send a HEAD request to the Tus server.
         /// </summary>
         /// <param name="url">The endpoint to post the HEAD request to.</param>
