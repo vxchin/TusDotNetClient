@@ -10,10 +10,22 @@
 ```c#
 var file = new FileInfo(@"path/to/file.ext");
 var client = new TusClient();
+
+// -- Create & Upload --
 var fileUrl = await client.CreateAsync(Address, file.Length, metadata);
 await client.UploadAsync(fileUrl, file, chunkSize: 5D);
-// or
+
+// -- or Create w/ Upload --
 var (fileUrl, responses) = await client.CreateWithUploadAsync(Address, file, metadata);
+
+// -- Download --
+var response = await client.DownloadAsync(fileUrl);
+// use response.ResponseBytes : byte[] or response.ResponseString : string
+
+// -- or Download to file directly --
+var response = await client.DownloadToFileAsync(fileUrl, destFileName);
+// use response.File : FileInfo
+
 ```
 
 ### Progress updates
